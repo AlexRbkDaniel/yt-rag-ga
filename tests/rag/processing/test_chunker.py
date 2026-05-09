@@ -1,11 +1,8 @@
-import pytest
-
 from src.rag.models.transcript import TranscriptSegment
 from src.rag.processing.chunker import TranscriptChunker
 
 
 class TestTranscriptChunkerInit:
-
     def test_default_config(self):
         chunker = TranscriptChunker()
         assert chunker._chunk_size == 1000
@@ -29,7 +26,6 @@ class TestTranscriptChunkerInit:
 
 
 class TestTranscriptChunkerChunk:
-
     def test_empty_segments_returns_empty_list(self):
         chunker = TranscriptChunker()
         assert chunker.chunk([]) == []

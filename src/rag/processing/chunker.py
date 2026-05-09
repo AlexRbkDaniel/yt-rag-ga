@@ -28,7 +28,11 @@ class TranscriptChunker:
             chunk_size=self._chunk_size,
             chunk_overlap=self._chunk_overlap,
         )
-        LOG.debug("TranscriptChunker initialised with chunk_size=%d, chunk_overlap=%d", chunk_size, chunk_overlap)
+        LOG.debug(
+            "TranscriptChunker initialised with chunk_size=%d, chunk_overlap=%d",
+            chunk_size,
+            chunk_overlap,
+        )
 
     def chunk(self, segments: list[TranscriptSegment]) -> list[str]:
         """Joins transcript segments into plain text and splits into overlapping chunks.
@@ -40,17 +44,26 @@ class TranscriptChunker:
             List of text chunks ready for embedding.
         """
         if not segments:
-            LOG.warning("chunk() called with empty segments list — returning empty result")
+            LOG.warning(
+                "chunk() called with empty segments list — returning empty result"
+            )
             return []
 
         # Join plain text from all segments — start times are not included in chunks
         plain_text: str = " ".join(segment.text for segment in segments)
-        LOG.debug("Chunking transcript of %d characters from %d segments", len(plain_text), len(segments))
+        LOG.debug(
+            "Chunking transcript of %d characters from %d segments",
+            len(plain_text),
+            len(segments),
+        )
 
         chunks: list[str] = self._splitter.split_text(plain_text)
 
         if not chunks:
-            LOG.warning("Chunking produced no output for transcript of %d characters", len(plain_text))
+            LOG.warning(
+                "Chunking produced no output for transcript of %d characters",
+                len(plain_text),
+            )
             return []
 
         LOG.debug("Produced %d chunks from transcript", len(chunks))

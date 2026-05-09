@@ -10,6 +10,7 @@ class VideoMetadata:
     Fields marked as oEmbed are populated via the existing YouTube oEmbed API call.
     Fields marked as API v3 require the YouTube Data API v3 (see docs/youtube-data-api-setup.md).
     """
+
     video_id: str
     video_url: str
 
@@ -31,5 +32,6 @@ class VideoMetadata:
 @dataclass
 class VideoData:
     """Combines video metadata with its processed transcript segments."""
+
     metadata: VideoMetadata
     transcript: list[TranscriptSegment] = field(default_factory=list)

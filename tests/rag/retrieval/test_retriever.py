@@ -20,7 +20,6 @@ def _make_doc(text: str) -> MagicMock:
 
 
 class TestRetrieverInit:
-
     def test_default_config(self):
         store = MagicMock()
         retriever = Retriever(store)
@@ -59,7 +58,6 @@ class TestRetrieverInit:
 
 
 class TestRetrieverRetrieve:
-
     def test_empty_query_raises(self):
         retriever = Retriever(MagicMock())
         with pytest.raises(ValueError, match="query cannot be empty"):
@@ -80,7 +78,9 @@ class TestRetrieverRetrieve:
         store = _make_store([])
         retriever = Retriever(store, top_k=3)
         retriever.retrieve("question")
-        store.similarity_search_with_relevance_scores.assert_called_once_with("question", k=3)
+        store.similarity_search_with_relevance_scores.assert_called_once_with(
+            "question", k=3
+        )
 
     def test_chunks_below_threshold_are_filtered(self):
         store = _make_store([("relevant", 0.8), ("irrelevant", 0.3)])

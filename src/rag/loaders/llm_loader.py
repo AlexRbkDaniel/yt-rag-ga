@@ -32,9 +32,13 @@ class LLMLoader:
             max_retries: Number of retries on transient API failures.
         """
         if model not in ClaudeModel.values():
-            raise ValueError(f"model must be one of {ClaudeModel.values()}, got '{model}'")
+            raise ValueError(
+                f"model must be one of {ClaudeModel.values()}, got '{model}'"
+            )
         if not 0.0 <= temperature <= 1.0:
-            raise ValueError(f"temperature must be between 0.0 and 1.0, got {temperature}")
+            raise ValueError(
+                f"temperature must be between 0.0 and 1.0, got {temperature}"
+            )
         if max_tokens <= 0:
             raise ValueError(f"max_tokens must be a positive integer, got {max_tokens}")
         if timeout <= 0:
@@ -52,7 +56,12 @@ class LLMLoader:
 
         LOG.debug(
             "LLMLoader configured: model=%s, temperature=%s, max_tokens=%d, timeout=%d, streaming=%s, max_retries=%d",
-            model, temperature, max_tokens, timeout, streaming, max_retries,
+            model,
+            temperature,
+            max_tokens,
+            timeout,
+            streaming,
+            max_retries,
         )
 
     def load(self) -> ChatAnthropic:

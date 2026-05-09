@@ -6,7 +6,12 @@ from concurrent.futures import ThreadPoolExecutor, Future
 from typing import TYPE_CHECKING, Any
 
 import requests
-from youtube_transcript_api import YouTubeTranscriptApi, TranscriptsDisabled, VideoUnavailable, NoTranscriptFound
+from youtube_transcript_api import (
+    YouTubeTranscriptApi,
+    TranscriptsDisabled,
+    VideoUnavailable,
+    NoTranscriptFound,
+)
 
 if TYPE_CHECKING:
     from youtube_transcript_api._transcripts import TranscriptList, FetchedTranscript
@@ -23,7 +28,7 @@ class YtLoader:
     """Loads and processes English transcripts from YouTube videos."""
 
     _pattern: re.Pattern = re.compile(
-        r'(?:https?://)?(?:www\.|m\.)?(?:youtube\.com/watch\?v=|youtu\.be/)([a-zA-Z0-9_-]{11})'
+        r"(?:https?://)?(?:www\.|m\.)?(?:youtube\.com/watch\?v=|youtu\.be/)([a-zA-Z0-9_-]{11})"
     )
 
     @staticmethod
@@ -59,11 +64,18 @@ class YtLoader:
                 author_url=data.get("author_url"),
                 thumbnail_url=data.get("thumbnail_url"),
             )
-            LOG.debug("Fetched metadata for video_id %s: title='%s', author='%s'", video_id, metadata.title, metadata.author)
+            LOG.debug(
+                "Fetched metadata for video_id %s: title='%s', author='%s'",
+                video_id,
+                metadata.title,
+                metadata.author,
+            )
             return metadata
         except (requests.RequestException, ValueError) as e:
             # Non-fatal — return partial metadata rather than failing the whole load
-            LOG.warning("Failed to fetch video metadata for video_id %s: %s", video_id, e)
+            LOG.warning(
+                "Failed to fetch video metadata for video_id %s: %s", video_id, e
+            )
             return VideoMetadata(video_id=video_id, video_url=video_url)
 
     @staticmethod
@@ -81,8 +93,14 @@ class YtLoader:
             LOG.error("No transcript found for video_id: %s", video_id)
             raise ValueError(f"No transcript found for video_id: '{video_id}'")
         except Exception as e:
-            LOG.error("Unexpected error while listing transcripts for video_id %s: %s", video_id, e)
-            raise ValueError(f"Unexpected error while listing transcripts for video_id: '{video_id}'") from e
+            LOG.error(
+                "Unexpected error while listing transcripts for video_id %s: %s",
+                video_id,
+                e,
+            )
+            raise ValueError(
+                f"Unexpected error while listing transcripts for video_id: '{video_id}'"
+            ) from e
 
     @staticmethod
     def _extract_transcript(video_id: str) -> FetchedTranscript:
@@ -92,23 +110,36 @@ class YtLoader:
         fetched: FetchedTranscript | None = None
         for inner_transcript in transcripts:
             # Only consider English transcripts
-            if inner_transcript.language_code == 'en':
+            if inner_transcript.language_code == "en":
                 if inner_transcript.is_generated:
                     # Use auto-generated only if no transcript has been set yet
                     if not fetched:
                         try:
                             fetched = inner_transcript.fetch()
-                            LOG.debug("Using auto-generated English transcript for video_id: %s", video_id)
+                            LOG.debug(
+                                "Using auto-generated English transcript for video_id: %s",
+                                video_id,
+                            )
                         except Exception as e:
-                            LOG.warning("Failed to fetch auto-generated transcript for video_id %s: %s", video_id, e)
+                            LOG.warning(
+                                "Failed to fetch auto-generated transcript for video_id %s: %s",
+                                video_id,
+                                e,
+                            )
                 else:
                     # Manual transcript takes priority — fall back to auto-generated if it fails
                     try:
                         fetched = inner_transcript.fetch()
-                        LOG.debug("Using manual English transcript for video_id: %s", video_id)
+                        LOG.debug(
+                            "Using manual English transcript for video_id: %s", video_id
+                        )
                         break
                     except Exception as e:
-                        LOG.warning("Failed to fetch manual transcript, keeping auto-generated fallback for video_id %s: %s", video_id, e)
+                        LOG.warning(
+                            "Failed to fetch manual transcript, keeping auto-generated fallback for video_id %s: %s",
+                            video_id,
+                            e,
+                        )
         if not fetched:
             LOG.error("No English transcript found for video_id: %s", video_id)
             raise ValueError(f"No English transcript found for video_id: '{video_id}'")
@@ -122,10 +153,14 @@ class YtLoader:
         for snippet in fetched:
             try:
                 # Extract plain text and start time into the DTO — no formatting applied here
-                segments.append(TranscriptSegment(text=snippet.text, start=snippet.start))
+                segments.append(
+                    TranscriptSegment(text=snippet.text, start=snippet.start)
+                )
             except AttributeError:
                 # Malformed snippet — warn and skip
-                LOG.warning("Skipping malformed snippet with missing text or start fields")
+                LOG.warning(
+                    "Skipping malformed snippet with missing text or start fields"
+                )
         if not segments:
             LOG.error("Transcript is empty — no valid snippets were processed")
             raise ValueError("Transcript is empty — no valid snippets were processed")
@@ -144,12 +179,20 @@ class YtLoader:
 
         # Fetch metadata and transcript concurrently — they hit independent APIs
         with ThreadPoolExecutor(max_workers=2) as executor:
-            metadata_future: Future = executor.submit(YtLoader._fetch_video_metadata, video_id, video_url)
-            transcript_future: Future = executor.submit(YtLoader._extract_transcript, video_id)
+            metadata_future: Future = executor.submit(
+                YtLoader._fetch_video_metadata, video_id, video_url
+            )
+            transcript_future: Future = executor.submit(
+                YtLoader._extract_transcript, video_id
+            )
             metadata: VideoMetadata = metadata_future.result()
             fetched: FetchedTranscript = transcript_future.result()
 
         segments: list[TranscriptSegment] = YtLoader._process_transcript(fetched)
         result = VideoData(metadata=metadata, transcript=segments)
-        LOG.info("Successfully loaded video '%s' with %d transcript segments", metadata.title, len(segments))
+        LOG.info(
+            "Successfully loaded video '%s' with %d transcript segments",
+            metadata.title,
+            len(segments),
+        )
         return result

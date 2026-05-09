@@ -6,7 +6,6 @@ from src.rag.models.claude_model import ClaudeModel
 
 
 class TestLLMLoaderInit:
-
     def test_valid_default_config(self):
         loader = LLMLoader()
         assert loader._model == ClaudeModel.SONNET.value
@@ -17,7 +16,14 @@ class TestLLMLoaderInit:
         assert loader._max_retries == 2
 
     def test_custom_config_haiku(self):
-        loader = LLMLoader(model=ClaudeModel.HAIKU.value, temperature=0.5, max_tokens=512, timeout=60, streaming=False, max_retries=3)
+        loader = LLMLoader(
+            model=ClaudeModel.HAIKU.value,
+            temperature=0.5,
+            max_tokens=512,
+            timeout=60,
+            streaming=False,
+            max_retries=3,
+        )
         assert loader._model == ClaudeModel.HAIKU.value
         assert loader._temperature == 0.5
         assert loader._max_tokens == 512
@@ -91,7 +97,6 @@ class TestLLMLoaderInit:
 
 
 class TestLLMLoaderLoad:
-
     def test_missing_api_key_raises(self):
         loader = LLMLoader()
         with patch("src.rag.loaders.llm_loader.os.getenv", return_value=None):
@@ -107,16 +112,22 @@ class TestLLMLoaderLoad:
     def test_returns_chat_anthropic_instance(self):
         loader = LLMLoader()
         mock_llm = MagicMock()
-        with patch("src.rag.loaders.llm_loader.os.getenv", return_value="test-key"), \
-             patch("src.rag.loaders.llm_loader.ChatAnthropic", return_value=mock_llm):
+        with (
+            patch("src.rag.loaders.llm_loader.os.getenv", return_value="test-key"),
+            patch("src.rag.loaders.llm_loader.ChatAnthropic", return_value=mock_llm),
+        ):
             result = loader.load()
         assert result is mock_llm
 
     def test_instance_is_cached_after_first_load(self):
         loader = LLMLoader()
         mock_llm = MagicMock()
-        with patch("src.rag.loaders.llm_loader.os.getenv", return_value="test-key"), \
-             patch("src.rag.loaders.llm_loader.ChatAnthropic", return_value=mock_llm) as mock_cls:
+        with (
+            patch("src.rag.loaders.llm_loader.os.getenv", return_value="test-key"),
+            patch(
+                "src.rag.loaders.llm_loader.ChatAnthropic", return_value=mock_llm
+            ) as mock_cls,
+        ):
             first = loader.load()
             second = loader.load()
 
@@ -126,8 +137,10 @@ class TestLLMLoaderLoad:
     def test_cached_instance_set_after_load(self):
         loader = LLMLoader()
         mock_llm = MagicMock()
-        with patch("src.rag.loaders.llm_loader.os.getenv", return_value="test-key"), \
-             patch("src.rag.loaders.llm_loader.ChatAnthropic", return_value=mock_llm):
+        with (
+            patch("src.rag.loaders.llm_loader.os.getenv", return_value="test-key"),
+            patch("src.rag.loaders.llm_loader.ChatAnthropic", return_value=mock_llm),
+        ):
             loader.load()
 
         assert loader._llm is mock_llm

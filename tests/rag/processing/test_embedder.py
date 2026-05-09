@@ -5,7 +5,6 @@ from src.rag.processing.embedder import Embedder
 
 
 class TestEmbedderInit:
-
     def test_default_config(self):
         embedder = Embedder()
         assert embedder._model == "voyage-3-lite"
@@ -38,7 +37,6 @@ class TestEmbedderInit:
 
 
 class TestEmbedderGetEmbeddings:
-
     def test_missing_api_key_raises(self):
         embedder = Embedder()
         with patch("src.rag.processing.embedder.os.getenv", return_value=None):
@@ -54,16 +52,24 @@ class TestEmbedderGetEmbeddings:
     def test_returns_voyage_embeddings_instance(self):
         embedder = Embedder()
         mock_emb = MagicMock()
-        with patch("src.rag.processing.embedder.os.getenv", return_value="test-key"), \
-             patch("src.rag.processing.embedder.VoyageAIEmbeddings", return_value=mock_emb):
+        with (
+            patch("src.rag.processing.embedder.os.getenv", return_value="test-key"),
+            patch(
+                "src.rag.processing.embedder.VoyageAIEmbeddings", return_value=mock_emb
+            ),
+        ):
             result = embedder._get_embeddings()
         assert result is mock_emb
 
     def test_embeddings_cached_after_first_call(self):
         embedder = Embedder()
         mock_emb = MagicMock()
-        with patch("src.rag.processing.embedder.os.getenv", return_value="test-key"), \
-             patch("src.rag.processing.embedder.VoyageAIEmbeddings", return_value=mock_emb) as mock_cls:
+        with (
+            patch("src.rag.processing.embedder.os.getenv", return_value="test-key"),
+            patch(
+                "src.rag.processing.embedder.VoyageAIEmbeddings", return_value=mock_emb
+            ) as mock_cls,
+        ):
             first = embedder._get_embeddings()
             second = embedder._get_embeddings()
 
@@ -73,15 +79,18 @@ class TestEmbedderGetEmbeddings:
     def test_cached_instance_set_after_call(self):
         embedder = Embedder()
         mock_emb = MagicMock()
-        with patch("src.rag.processing.embedder.os.getenv", return_value="test-key"), \
-             patch("src.rag.processing.embedder.VoyageAIEmbeddings", return_value=mock_emb):
+        with (
+            patch("src.rag.processing.embedder.os.getenv", return_value="test-key"),
+            patch(
+                "src.rag.processing.embedder.VoyageAIEmbeddings", return_value=mock_emb
+            ),
+        ):
             embedder._get_embeddings()
 
         assert embedder._embeddings is mock_emb
 
 
 class TestEmbedderEmbed:
-
     def test_empty_chunks_raises(self):
         embedder = Embedder()
         with pytest.raises(ValueError, match="chunks cannot be empty"):
@@ -91,9 +100,15 @@ class TestEmbedderEmbed:
         embedder = Embedder()
         mock_emb = MagicMock()
         mock_store = MagicMock()
-        with patch("src.rag.processing.embedder.os.getenv", return_value="test-key"), \
-             patch("src.rag.processing.embedder.VoyageAIEmbeddings", return_value=mock_emb), \
-             patch("src.rag.processing.embedder.FAISS.from_texts", return_value=mock_store) as mock_faiss:
+        with (
+            patch("src.rag.processing.embedder.os.getenv", return_value="test-key"),
+            patch(
+                "src.rag.processing.embedder.VoyageAIEmbeddings", return_value=mock_emb
+            ),
+            patch(
+                "src.rag.processing.embedder.FAISS.from_texts", return_value=mock_store
+            ) as mock_faiss,
+        ):
             result = embedder.embed(["hello world"])
 
         assert result is mock_store
@@ -104,9 +119,15 @@ class TestEmbedderEmbed:
         mock_emb = MagicMock()
         mock_store = MagicMock()
         chunks = ["chunk one", "chunk two", "chunk three"]
-        with patch("src.rag.processing.embedder.os.getenv", return_value="test-key"), \
-             patch("src.rag.processing.embedder.VoyageAIEmbeddings", return_value=mock_emb), \
-             patch("src.rag.processing.embedder.FAISS.from_texts", return_value=mock_store) as mock_faiss:
+        with (
+            patch("src.rag.processing.embedder.os.getenv", return_value="test-key"),
+            patch(
+                "src.rag.processing.embedder.VoyageAIEmbeddings", return_value=mock_emb
+            ),
+            patch(
+                "src.rag.processing.embedder.FAISS.from_texts", return_value=mock_store
+            ) as mock_faiss,
+        ):
             embedder.embed(chunks)
 
         mock_faiss.assert_called_once_with(chunks, mock_emb)

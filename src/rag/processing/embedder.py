@@ -16,7 +16,9 @@ _DEFAULT_BATCH_SIZE = 32
 class Embedder:
     """Converts text chunks into vector embeddings and stores them in a FAISS index."""
 
-    def __init__(self, model: str = _DEFAULT_MODEL, batch_size: int = _DEFAULT_BATCH_SIZE):
+    def __init__(
+        self, model: str = _DEFAULT_MODEL, batch_size: int = _DEFAULT_BATCH_SIZE
+    ):
         if not model.strip():
             raise ValueError("model cannot be empty")
         if batch_size <= 0:
