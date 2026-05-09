@@ -2,7 +2,7 @@
 youtube-transcript-api==1.2.1
 
 # Vector store
-faiss-cpu==1.8.0
+faiss-cpu==1.13.2
 
 # LangChain core
 langchain==1.2.18
