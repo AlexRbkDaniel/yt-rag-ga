@@ -21,8 +21,8 @@ class VideoMetadata:
     thumbnail_url: str | None = None
 
     # TODO: populate via YouTube Data API v3 (see docs/youtube-data-api-setup.md)
-    likes: int = 0
-    views: int = 0
+    likes: int | None = None
+    views: int | None = None
     description: str | None = None
     published_at: str | None = None
     duration: str | None = None

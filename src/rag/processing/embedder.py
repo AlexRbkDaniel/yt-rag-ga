@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import logging
 import os
+import time
 
 from langchain_community.vectorstores import FAISS
 from langchain_voyageai import VoyageAIEmbeddings
@@ -47,13 +48,39 @@ class Embedder:
         LOG.debug("VoyageAIEmbeddings initialised: model=%s", self._model)
         return embeddings
 
-    def embed(self, chunks: list[str]) -> FAISS:
-        """Embeds the given text chunks and returns a searchable FAISS vector store."""
+    def embed(
+        self, chunks: list[str], max_retries: int = 3, retry_delay: float = 1.0
+    ) -> FAISS:
+        """Embeds the given text chunks and returns a searchable FAISS vector store.
+
+        Retries up to max_retries times on transient failures before raising.
+        """
         if not chunks:
             raise ValueError("chunks cannot be empty — nothing to embed")
 
         LOG.info("Embedding %d chunks with model=%s", len(chunks), self._model)
         embeddings = self._get_embeddings()
-        store = FAISS.from_texts(chunks, embeddings)
-        LOG.info("FAISS index built: %d vectors", store.index.ntotal)
-        return store
+
+        last_exc: Exception | None = None
+        for attempt in range(1, max_retries + 1):
+            try:
+                store = FAISS.from_texts(chunks, embeddings)
+                LOG.info("FAISS index built: %d vectors", store.index.ntotal)
+                return store
+            except Exception as e:
+                last_exc = e
+                if attempt < max_retries:
+                    LOG.warning(
+                        "Embedding attempt %d/%d failed: %s — retrying in %.1fs",
+                        attempt,
+                        max_retries,
+                        e,
+                        retry_delay,
+                    )
+                    time.sleep(retry_delay)
+                else:
+                    LOG.error("All %d embedding attempts failed: %s", max_retries, e)
+
+        raise RuntimeError(
+            f"Embedding failed after {max_retries} attempts"
+        ) from last_exc

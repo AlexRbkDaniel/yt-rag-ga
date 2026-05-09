@@ -1,3 +1,5 @@
+import pytest
+
 from src.rag.models.transcript import TranscriptSegment
 from src.rag.processing.chunker import TranscriptChunker
 
@@ -16,6 +18,30 @@ class TestTranscriptChunkerInit:
     def test_splitter_initialised_at_construction(self):
         chunker = TranscriptChunker()
         assert chunker._splitter is not None
+
+    def test_chunk_size_zero_raises(self):
+        with pytest.raises(ValueError, match="chunk_size must be a positive integer"):
+            TranscriptChunker(chunk_size=0)
+
+    def test_chunk_size_negative_raises(self):
+        with pytest.raises(ValueError, match="chunk_size must be a positive integer"):
+            TranscriptChunker(chunk_size=-1)
+
+    def test_chunk_overlap_negative_raises(self):
+        with pytest.raises(ValueError, match="chunk_overlap must be non-negative"):
+            TranscriptChunker(chunk_size=100, chunk_overlap=-1)
+
+    def test_chunk_overlap_equal_to_chunk_size_raises(self):
+        with pytest.raises(
+            ValueError, match="chunk_overlap .* must be less than chunk_size"
+        ):
+            TranscriptChunker(chunk_size=100, chunk_overlap=100)
+
+    def test_chunk_overlap_greater_than_chunk_size_raises(self):
+        with pytest.raises(
+            ValueError, match="chunk_overlap .* must be less than chunk_size"
+        ):
+            TranscriptChunker(chunk_size=100, chunk_overlap=200)
 
     def test_splitter_reused_across_calls(self):
         chunker = TranscriptChunker()
