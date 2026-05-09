@@ -1,0 +1,11 @@
+-r requirements.txt
+
+# Linting and formatting
+ruff==0.15.12
+
+# Testing
+pytest==9.0.3
+pytest-cov==7.1.0
+
+# Security audit
+pip-audit==2.10.0
