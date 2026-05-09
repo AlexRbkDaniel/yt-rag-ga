@@ -131,3 +131,49 @@ class TestEmbedderEmbed:
             embedder.embed(chunks)
 
         mock_faiss.assert_called_once_with(chunks, mock_emb)
+
+    def test_retries_on_transient_failure_then_succeeds(self):
+        embedder = Embedder()
+        mock_emb = MagicMock()
+        mock_store = MagicMock()
+        call_count = {"n": 0}
+
+        def flaky_from_texts(chunks, emb):
+            call_count["n"] += 1
+            if call_count["n"] < 3:
+                raise ConnectionError("transient")
+            return mock_store
+
+        with (
+            patch("src.rag.processing.embedder.os.getenv", return_value="test-key"),
+            patch(
+                "src.rag.processing.embedder.VoyageAIEmbeddings", return_value=mock_emb
+            ),
+            patch(
+                "src.rag.processing.embedder.FAISS.from_texts",
+                side_effect=flaky_from_texts,
+            ),
+            patch("src.rag.processing.embedder.time.sleep"),
+        ):
+            result = embedder.embed(["chunk"], max_retries=3, retry_delay=0.0)
+
+        assert result is mock_store
+        assert call_count["n"] == 3
+
+    def test_all_retries_exhausted_raises_runtime_error(self):
+        embedder = Embedder()
+        mock_emb = MagicMock()
+
+        with (
+            patch("src.rag.processing.embedder.os.getenv", return_value="test-key"),
+            patch(
+                "src.rag.processing.embedder.VoyageAIEmbeddings", return_value=mock_emb
+            ),
+            patch(
+                "src.rag.processing.embedder.FAISS.from_texts",
+                side_effect=ConnectionError("always fails"),
+            ),
+            patch("src.rag.processing.embedder.time.sleep"),
+        ):
+            with pytest.raises(RuntimeError, match="Embedding failed after 3 attempts"):
+                embedder.embed(["chunk"], max_retries=3, retry_delay=0.0)

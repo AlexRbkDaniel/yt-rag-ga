@@ -23,9 +23,9 @@ class Retriever:
     ):
         if top_k <= 0:
             raise ValueError(f"top_k must be a positive integer, got {top_k}")
-        if not 0.0 <= score_threshold <= 1.0:
+        if score_threshold < 0.0:
             raise ValueError(
-                f"score_threshold must be between 0.0 and 1.0, got {score_threshold}"
+                f"score_threshold must be non-negative, got {score_threshold}"
             )
 
         self._store = store

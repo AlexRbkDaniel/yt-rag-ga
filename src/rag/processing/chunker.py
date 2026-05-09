@@ -21,6 +21,14 @@ class TranscriptChunker:
             chunk_size: maximum number of characters per chunk.
             chunk_overlap: number of characters overlapping between consecutive chunks.
         """
+        if chunk_size <= 0:
+            raise ValueError(f"chunk_size must be a positive integer, got {chunk_size}")
+        if chunk_overlap < 0:
+            raise ValueError(f"chunk_overlap must be non-negative, got {chunk_overlap}")
+        if chunk_overlap >= chunk_size:
+            raise ValueError(
+                f"chunk_overlap ({chunk_overlap}) must be less than chunk_size ({chunk_size})"
+            )
         self._chunk_size = chunk_size
         self._chunk_overlap = chunk_overlap
         # Initialise the splitter once — reused across all chunk() calls

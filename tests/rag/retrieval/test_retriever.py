@@ -41,12 +41,8 @@ class TestRetrieverInit:
             Retriever(MagicMock(), top_k=-1)
 
     def test_score_threshold_below_zero_raises(self):
-        with pytest.raises(ValueError, match="score_threshold must be between"):
+        with pytest.raises(ValueError, match="score_threshold must be non-negative"):
             Retriever(MagicMock(), score_threshold=-0.1)
-
-    def test_score_threshold_above_one_raises(self):
-        with pytest.raises(ValueError, match="score_threshold must be between"):
-            Retriever(MagicMock(), score_threshold=1.1)
 
     def test_score_threshold_boundary_zero_valid(self):
         retriever = Retriever(MagicMock(), score_threshold=0.0)
@@ -55,6 +51,10 @@ class TestRetrieverInit:
     def test_score_threshold_boundary_one_valid(self):
         retriever = Retriever(MagicMock(), score_threshold=1.0)
         assert retriever._score_threshold == 1.0
+
+    def test_score_threshold_above_one_valid(self):
+        retriever = Retriever(MagicMock(), score_threshold=1.5)
+        assert retriever._score_threshold == 1.5
 
 
 class TestRetrieverRetrieve:
