@@ -50,7 +50,7 @@ This is sufficient for production use at normal scale.
 
 ## 6. What Changes in Code
 
-Once the key is in `.env`, uncomment and implement the `_fetch_video_stats`
+Once the key is in `.env`, add and implement the `_fetch_video_stats`
 method in `src/rag/loaders/youtube_loader.py`. It will call:
 
 ```
