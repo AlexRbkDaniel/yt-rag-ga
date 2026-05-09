@@ -1,5 +1,5 @@
 # Transcript extraction
-youtube-transcript-api==1.2.1
+youtube-transcript-api==1.2.4
 
 # Vector store
 faiss-cpu==1.8.0
