@@ -1,7 +1,7 @@
 -r requirements.txt
 
 # Linting and formatting
-ruff==0.15.12
+ruff==0.15.13
 
 # Testing
 pytest==9.0.3
